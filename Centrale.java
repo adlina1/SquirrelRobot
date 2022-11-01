@@ -9,6 +9,7 @@ import java.util.logging.*;
 public class Centrale extends Environment {
 
     private Logger logger = Logger.getLogger("centrale_nucleaire.mas2j."+Centrale.class.getName());
+	private Object model = new Object();
 	
 	// The world in which we'll be in
 	boolean[][] grid = new boolean [4][4];
@@ -39,7 +40,8 @@ public class Centrale extends Environment {
 	private static final Literal lPos16 = ASSyntax.createLiteral("posRobot", ASSyntax.createNumber(16));
 
 	private static final Literal lMaterial = ASSyntax.createLiteral("material"); // it means we perceive there is a material 
-	private static final Literal lNotMaterial = ASSyntax.createLiteral(Literal.LNeg, "material"); // here we don't
+	private static final Literal lNotMaterial = ASSyntax.createLiteral(Literal.LNeg, "noMaterial"); // here we don't
+	private static final Literal getState = ASSyntax.createLiteral(Literal.LNeg, "giveStateMaterial"); 
 
 	
 	
@@ -57,17 +59,56 @@ public class Centrale extends Environment {
 
     @Override
     public boolean executeAction(String agName, Structure action) {
-        logger.info("executing: "+action+", but not implemented!");
-        if (true) { // you may improve this condition
-             informAgsEnvironmentChanged();
+		logger.info("SquiRobot doing : "+action);
+
+        try {
+            Thread.sleep(750);   
+        }  catch (Exception e) {}
+
+        synchronized (modelLock) {
+            // The environment change based on actions taken
+            if (action.getFunctor().equals("take")) { // all of our actions will be listed
+                if (grid[pos_squirrel_x][pos_squirrel_y]) {
+                    grid[pos_squirrel_x][pos_squirrel_y] = false; 
+					logger.info("The state of the material has been taken."); // print smth
+					// the material doesn't move, but we suppose  we won't have to take it again atm, so false.
+                } else {
+                    logger.info("Not a material there");
+                    Toolkit.getDefaultToolkit().beep();
+				}
+			} else if (action.getFunctor().equals("moveUP")) {
+					if (pos_squirrel_x > 0) {
+						pos_squirrel_x--;
+                }
+			} else if (action.getFunctor().equals("moveDOWN")) {
+                if (pos_squirrel_x < 3) {
+                    pos_squirrel_x++;
+                }
+			} else if (action.getFunctor().equals("moveRIGHT")) {
+                if (pos_squirrel_y < 3) {
+                    pos_squirrel_y++;
+                }
+			} else if (action.getFunctor().equals("moveLEFT")) {
+				if (pos_squirrel_y > 0) {
+					pos_squirrel_y--;
+				}
+            } else {
+                logger.info("The action "+action+" is not implemented!");
+                return false;
+            }
         }
-        return true; // the action was executed with success
+		createPercept(); // update agents perception for the new world state
+        //gui.paint();
+        return true;        
     }
+	
+	// the functor is an atom
 
     /** Called before the end of MAS execution */
     @Override
     public void stop() {
         super.stop();
+		gui.setVisible(false);
     }
 	
 	private void createPercept() {
@@ -116,7 +157,6 @@ public class Centrale extends Environment {
 			// there is a material
 			addPercept(lMaterial);
 		} else {
-			
 			addPercept(lNotMaterial)
 		}
 		
