@@ -1,0 +1,22 @@
+/*
+    centrale_nucleaire
+    ---------------------------
+
+    Jason Project File
+
+    This file defines the initial state of the MAS
+
+    Jason 3.1
+    October 07, 2022 - 15:39:18
+*/
+
+MAS centrale_nucleaire {
+
+    infrastructure: Local
+
+    environment: Centrale
+
+    agents: squirrel_robot;
+        human_supervisor /home/adlin/Downloads/centrale_nucleaire/human_supervisor.asl;
+
+}
