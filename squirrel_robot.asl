@@ -1,22 +1,20 @@
-// Agent sample_agent in project centrale_nucleaire
 
-// our actions : moveUP, moveDOWN, moveLEFT, moveRIGHT, take, enter, goOut, send, check
+// Actions : moveUP, moveDOWN, moveLEFT, moveRIGHT, returnBegining, take, send, goOut, (check?)
 
 
-/* Initial beliefs and rules */
+/* Initial goal */
 
-/*
-posRobot(0, 0).
-posMaterial(2, 1).
-posMaterial(3, 2). 
-// !posRobot(2, 1)
-notchecked(0,0).
-*/
-
-/* Initial goals */
-
-//!posRobot(2, 1). // Le robot doit aller à la position du materiel
 !giveStateMaterial.
+
+/* Plans */
+
++!giveStateMaterial : noMaterial <- !move; !giveStateMaterial.
++!giveStateMaterial : material <- take; .send(human_supervisor, tell, noMaterial); !giveStateMaterial.
+//tell = s intends r to believe (that s believes) the literal in the message’s content (noMaterial) to be true
+
+
+// has still the goal to move (but towards the exit)
++!goOut : everythingControlled <- leave.
 
 +!move : posRobot(1) <- moveRIGHT.
 +!move : posRobot(2) <- moveRIGHT.
@@ -33,31 +31,12 @@ notchecked(0,0).
 +!move : posRobot(16) <- moveLEFT.
 +!move : posRobot(15) <- moveLEFT.
 +!move : posRobot(14) <- moveLEFT.
-+!move : posRobot(13) <- moveUP.
++!move : posRobot(13) <- returnBegining. // end of the grid
 
 
-/* Plans */
-
-+!giveStateMaterial : material <- take; !giveStateMaterial.
-+!giveStateMaterial : noMaterial <- !move; !giveStateMaterial.
-
-// treat the case where all materials states have been taken, send them and go out
-// has still the goal to move (but towards the exit)
-+!giveStateMaterial : noMaterial <- !move; .send(human_supervisor,tell,noMaterial).
-//tell = s intends r to believe (that s believes) the literal in the message’s content (noMaterial) to be true
 
 
-/*
-+posRobot(X, Y) : not posRobot(2, 1) | not posRobot(3, 2) <- !posRobot(X+1, Y-1).
-+posRobot(X, Y) : posRobot(2, 1) | posRobot(3, 2) <- x.print("Arrived at destination!"); take. 
-*/
 
-/*
-+posRobot(X, Y) : X == 2 & Y == 1 <- checked(2, 1). // whenever I perceive I'm in (2,1), then do the checking.
-+posRobot(2, 1) : checked(2, 1) <- takeMaterial(2, 1). // whenever ... and I believe I have checked, take the material
-+posRobot(X, Y) : not X == 2 & not Y == 1 <- !moveTo(2, 1). // pas d'opérateur de différence apparemment
-
-*/
 
 
 

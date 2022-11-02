@@ -3,23 +3,25 @@
 import jason.asSyntax.*;
 import jason.environment.*;
 import jason.asSyntax.parser.*;
-
+import javax.swing.*;
 import java.util.logging.*;
+import java.awt.*;
+import javax.swing.border.*;
 
 public class Centrale extends Environment {
 
     private Logger logger = Logger.getLogger("centrale_nucleaire.mas2j."+Centrale.class.getName());
+	private CentraleGUI gui = new CentraleGUI();
 	private Object model = new Object();
 	
 	// The world in which we'll be in
-	boolean[][] grid = new boolean [4][4];
-	
-	// We define in which position there will be a material (which our robot will have to take the state) in our world
-	grid[2][1] = true; grid[3][2] = true;
+	static boolean[][] grid = new boolean [4][4];
 	
 	// Initial position of the robot
 	private int pos_squirrel_x = 0; 
     private int pos_squirrel_y = 0;
+	
+	private int nbMat = 0;
 	
 	// The constant terms used for perception 
     private static final Literal lPos1  = ASSyntax.createLiteral("posRobot", ASSyntax.createNumber(1));
@@ -40,37 +42,38 @@ public class Centrale extends Environment {
 	private static final Literal lPos16 = ASSyntax.createLiteral("posRobot", ASSyntax.createNumber(16));
 
 	private static final Literal lMaterial = ASSyntax.createLiteral("material"); // it means we perceive there is a material 
-	private static final Literal lNotMaterial = ASSyntax.createLiteral(Literal.LNeg, "noMaterial"); // here we don't
-	private static final Literal getState = ASSyntax.createLiteral(Literal.LNeg, "giveStateMaterial"); 
+	private static final Literal lNotMaterial = ASSyntax.createLiteral("noMaterial"); // here we don't
+	private static final Literal lAllDone = ASSyntax.createLiteral("everythingControlled"); 
 
 	
-	
-
-    /** Called before the MAS execution with the args informed in .mas2j */
-    @Override
-    public void init(String[] args) {
-        super.init(args);
-        try {
-			addPercept(ASSyntax.parseLiteral("percept(demo)"));
-		} catch (ParseException e) {
-			e.printStackTrace();
-		}
+	// Constructor
+	public Centrale() {
+		
+        createPercept();
+		
+		/* We define in which position there will be a material (which our robot will have to take the state) in our world
+		we suppose we are given this data by the human supervisor */
+        grid[2][1] = true;
+		grid[3][2] = true;
     }
+	
 
+	// All of our actions will be listed there
     @Override
     public boolean executeAction(String agName, Structure action) {
-		logger.info("SquiRobot doing : "+action);
-
+		logger.info("SquiRobot doing : ->"+action);
+		
         try {
-            Thread.sleep(750);   
+			// 750ms between each action taken
+            Thread.sleep(250);   
         }  catch (Exception e) {}
 
-        synchronized (modelLock) {
             // The environment change based on actions taken
-            if (action.getFunctor().equals("take")) { // all of our actions will be listed
+            if (action.getFunctor().equals("take")) { 
                 if (grid[pos_squirrel_x][pos_squirrel_y]) {
                     grid[pos_squirrel_x][pos_squirrel_y] = false; 
-					logger.info("The state of the material has been taken."); // print smth
+					nbMat += 1;
+					logger.info("The state of the material has been taken.");
 					// the material doesn't move, but we suppose  we won't have to take it again atm, so false.
                 } else {
                     logger.info("Not a material there");
@@ -91,14 +94,25 @@ public class Centrale extends Environment {
 			} else if (action.getFunctor().equals("moveLEFT")) {
 				if (pos_squirrel_y > 0) {
 					pos_squirrel_y--;
-				}
-            } else {
+				}	
+			// I come back to the begining of the grid (at case n°13)
+            } else if (action.getFunctor().equals("returnBegining")){
+				if (pos_squirrel_x == 3 && pos_squirrel_y == 0) {
+					pos_squirrel_x = 0;
+					pos_squirrel_y = 0;
+			 	}
+			} 
+			else if (action.getFunctor().equals("leave")){
+				logger.info("Leaave");
+				stop(); // to be changed, atm only forces the execution of the program to be stopped
+			
+			} else {
                 logger.info("The action "+action+" is not implemented!");
                 return false;
             }
-        }
+        
 		createPercept(); // update agents perception for the new world state
-        //gui.paint();
+        gui.paint();
         return true;        
     }
 	
@@ -112,6 +126,8 @@ public class Centrale extends Environment {
     }
 	
 	private void createPercept() {
+		
+		clearPercepts();
 		// First line of the grid
 		if (pos_squirrel_x == 0 && pos_squirrel_y == 0){
 			addPercept(lPos1);
@@ -156,11 +172,64 @@ public class Centrale extends Environment {
 		if (grid[pos_squirrel_x][pos_squirrel_y]) {
 			// there is a material
 			addPercept(lMaterial);
+			logger.info("there is material");
 		} else {
-			addPercept(lNotMaterial)
+			addPercept(lNotMaterial);
+			logger.info("there is not material");
 		}
 		
+		// If we are in the position where we entered and we have taken all the materials state then we're allowed to go out!
+		if (pos_squirrel_x == 0 && pos_squirrel_y == 0 && nbMat == 2) {
+			addPercept(lAllDone);
+			logger.info("Work is done. I'm going out.");
+			logger.info("cpt="+nbMat);
+		}
+						
 	} // end createPercept
+	
+	
+	public class CentraleGUI extends JFrame {
+        JLabel[][] labels;
+
+		// Constructor
+        public CentraleGUI() {
+            super("Squirrel Robot");
+            labels = new JLabel[grid.length][grid.length];
+            getContentPane().setLayout(new GridLayout(labels.length, labels.length));
+            for (int j = 0; j < labels.length; j++) {
+                for (int i = 0; i < labels.length; i++) {
+                    labels[i][j] = new JLabel();
+					labels[i][j].setBackground(Color.CYAN);
+					labels[i][j].setOpaque(true);
+                    labels[i][j].setPreferredSize(new Dimension(360,360));
+                    labels[i][j].setHorizontalAlignment(JLabel.CENTER);
+                    labels[i][j].setBorder(new EtchedBorder());
+                    getContentPane().add(labels[i][j]);
+                }
+            }
+            pack();
+            setVisible(true);
+            paint();
+        }
+	
+	void paint() {
+                for (int i = 0; i < labels.length; i++) {
+                    for (int j = 0; j < labels.length; j++) {
+                        String square = "<html><center>";
+                        if (pos_squirrel_x == i && pos_squirrel_y == j) {
+                            square += "<font color=\"purple\" size=7><b>SquiBot</b> <br></font>";
+                        }
+                        if (grid[i][j]) {
+                            square += "<font color=\"red\" size=5>material</font>";
+                        }
+                        square += "</center></html>";
+                        labels[i][j].setText(square);
+                    }
+                
+            }
+        }
+		
+	} // end CentraleGUI class
 
 
 }
