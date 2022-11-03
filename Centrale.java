@@ -63,58 +63,82 @@ public class Centrale extends Environment {
     public boolean executeAction(String agName, Structure action) {
 		logger.info("SquiRobot doing : ->"+action);
 		
+		// coordinates of first material
+		int goal_x = 2;
+		int goal_y = 1;
+		
+		// coordinates of second material
+		int goal_xx = 3;
+		int goal_yy = 2;
+		
+		
         try {
 			// 750ms between each action taken
-            Thread.sleep(250);   
-        }  catch (Exception e) {}
-
-            // The environment change based on actions taken
-            if (action.getFunctor().equals("take")) { 
-                if (grid[pos_squirrel_x][pos_squirrel_y]) {
-                    grid[pos_squirrel_x][pos_squirrel_y] = false; 
-					nbMat += 1;
-					logger.info("The state of the material has been taken.");
-					// the material doesn't move, but we suppose  we won't have to take it again atm, so false.
-                } else {
-                    logger.info("Not a material there");
-                    Toolkit.getDefaultToolkit().beep();
-				}
-			} else if (action.getFunctor().equals("moveUP")) {
-					if (pos_squirrel_x > 0) {
-						pos_squirrel_x--;
-                }
-			} else if (action.getFunctor().equals("moveDOWN")) {
-                if (pos_squirrel_x < 3) {
-                    pos_squirrel_x++;
-                }
-			} else if (action.getFunctor().equals("moveRIGHT")) {
-                if (pos_squirrel_y < 3) {
-                    pos_squirrel_y++;
-                }
-			} else if (action.getFunctor().equals("moveLEFT")) {
-				if (pos_squirrel_y > 0) {
-					pos_squirrel_y--;
-				}	
-			// I come back to the begining of the grid (at case n°13)
-            } else if (action.getFunctor().equals("returnBegining")){
-				if (pos_squirrel_x == 3 && pos_squirrel_y == 0) {
-					pos_squirrel_x = 0;
-					pos_squirrel_y = 0;
-			 	}
-			} 
-			else if (action.getFunctor().equals("leave")){
-				logger.info("Leaave");
-				stop(); // to be changed, atm only forces the execution of the program to be stopped
-			
+            Thread.sleep(750);   
+        }  catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		
+		// The environment change based on actions taken
+		if (action.getFunctor().equals("take")) { 
+			if (grid[pos_squirrel_x][pos_squirrel_y]) {
+				grid[pos_squirrel_x][pos_squirrel_y] = false; 
+				// the material doesn't move, but we suppose  we won't have to take it again atm, so false.
+				nbMat += 1;
+				logger.info("The state of the material has been taken.");
 			} else {
-                logger.info("The action "+action+" is not implemented!");
-                return false;
-            }
-        
+				logger.info("Not a material there");
+				Toolkit.getDefaultToolkit().beep();
+			}
+		} else if (action.getFunctor().equals("moveUP")) {
+				//if (pos_squirrel_y > 0) {
+					if(pos_squirrel_y > goal_y | pos_squirrel_y > goal_yy){
+						pos_squirrel_y--;
+						logger.info("new coordinates: [x="+pos_squirrel_x+",y="+pos_squirrel_y+"]");
+			}
+		} else if (action.getFunctor().equals("moveDOWN")) {
+			//if (pos_squirrel_y < 3) {
+				if(pos_squirrel_y < goal_y | pos_squirrel_y < goal_yy){
+					pos_squirrel_y++;
+					//pos_squirrel_x=0; // uncomment in the version without PCC.
+					logger.info("new coordinates: [x="+pos_squirrel_x+",y="+pos_squirrel_y+"]");
+				}
+			}
+		 else if (action.getFunctor().equals("moveRIGHT")) {
+			//if (pos_squirrel_x < 3) {
+				if (pos_squirrel_x < goal_x | pos_squirrel_x < goal_xx){
+					pos_squirrel_x++;	
+					logger.info("new coordinates: [x="+pos_squirrel_x+",y="+pos_squirrel_y+"]");
+				}
+			}
+		else if (action.getFunctor().equals("moveLEFT")) {
+			//if (pos_squirrel_x > 0) {
+				if(pos_squirrel_x > goal_x | pos_squirrel_x > goal_xx){
+					pos_squirrel_x--;
+					logger.info("new coordinates: [x="+pos_squirrel_x+",y="+pos_squirrel_y+"]");
+				}
+			}	
+		// I come back to the begining of the grid (at case n°13)
+		 else if (action.getFunctor().equals("returnBegining")){
+			if (pos_squirrel_x == 3 && pos_squirrel_y == 3) {
+				pos_squirrel_x = 0;
+				pos_squirrel_y = 0;
+			}
+		} 
+		else if (action.getFunctor().equals("leave")){
+			logger.info("Leaave");
+			stop(); // to be changed, atm only forces the execution of the program to be stopped
+		
+		} else {
+			logger.info("The action "+action+" is not implemented!");
+			return false;
+		}
+	
 		createPercept(); // update agents perception for the new world state
-        gui.paint();
-        return true;        
-    }
+		gui.paint();
+		return true;        
+}
 	
 	// the functor is an atom
 
