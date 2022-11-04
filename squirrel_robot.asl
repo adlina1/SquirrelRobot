@@ -5,6 +5,7 @@
 /* Initial goal */
 
 !giveStateMaterial.
+!goOut.
 
 /* Plans */
 
@@ -13,8 +14,8 @@
 //tell = s intends r to believe (that s believes) the literal in the message’s content (noMaterial) to be true
 
 
-// has still the goal to move (but towards the exit)
-+!goOut : everythingControlled <- leave.
+// We can reach the exit by going to the square n°16 that takes us to the entry directly (n°0) or by going towards the entry walking.
++!goOut : matrixEmpty <- returnBegining; leave.                 
 
 +!move : posRobot(1) <- moveRIGHT; moveDOWN.
 +!move : posRobot(2) <- moveRIGHT.
@@ -25,13 +26,13 @@
 +!move : posRobot(7) <- moveRIGHT.
 +!move : posRobot(8) <- moveRIGHT.
 +!move : posRobot(9) <- moveRIGHT.
-+!move : posRobot(10) <- moveRIGHT.
++!move : posRobot(10) <- moveDOWN.
 +!move : posRobot(11) <- moveRIGHT.
 +!move : posRobot(12) <- moveRIGHT.
 +!move:  posRobot(13) <- moveDOWN.
 +!move : posRobot(14) <- moveDOWN.
 +!move : posRobot(15) <- moveDOWN.
-+!move : posRobot(16) <- returnBegining. // end of the grid
++!move : posRobot(16) <- !goOut. // end of the grid
 
 
 

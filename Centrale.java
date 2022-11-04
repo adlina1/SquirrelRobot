@@ -22,6 +22,8 @@ public class Centrale extends Environment {
     private int pos_squirrel_y = 0;
 	
 	private int nbMat = 0;
+	private static int goal_x, goal_y, goal_xx, goal_yy;
+	boolean isEmptyCentrale = false;
 	
 	// The constant terms used for perception 
     private static final Literal lPos1  = ASSyntax.createLiteral("posRobot", ASSyntax.createNumber(1));
@@ -44,33 +46,45 @@ public class Centrale extends Environment {
 	private static final Literal lMaterial = ASSyntax.createLiteral("material"); // it means we perceive there is a material 
 	private static final Literal lNotMaterial = ASSyntax.createLiteral("noMaterial"); // here we don't
 	private static final Literal lAllDone = ASSyntax.createLiteral("everythingControlled"); 
-
+	private static final Literal lEmptyMatrix = ASSyntax.createLiteral("matrixEmpty"); 
 	
 	// Constructor
 	public Centrale() {
 		
+		// coordinates of first material
+		goal_x = 2;
+		goal_y = 1;
+		
+		// coordinates of second material
+		goal_xx = 3;
+		goal_yy = 2;
+		
+	    grid[goal_x][goal_y] = true;
+		grid[goal_xx][goal_yy] = true;	
         createPercept();
 		
 		/* We define in which position there will be a material (which our robot will have to take the state) in our world
 		we suppose we are given this data by the human supervisor */
-        grid[2][1] = true;
-		grid[3][2] = true;
+      	
     }
+	
+	public static boolean areAllFalse(boolean[][] array)
+	{
+		for (int i = 0; i < array.length; i++) {
+			for (int j = 0; j < array.length; j++) {
+				// at the first that is true
+				if(array[i][j] == true) 
+					return false;
+			}
+		}
+		return true;
+	}
 	
 
 	// All of our actions will be listed there
     @Override
     public boolean executeAction(String agName, Structure action) {
 		logger.info("SquiRobot doing : ->"+action);
-		
-		// coordinates of first material
-		int goal_x = 2;
-		int goal_y = 1;
-		
-		// coordinates of second material
-		int goal_xx = 3;
-		int goal_yy = 2;
-		
 		
         try {
 			// 750ms between each action taken
@@ -101,9 +115,14 @@ public class Centrale extends Environment {
 			//if (pos_squirrel_y < 3) {
 				if(pos_squirrel_y < goal_y | pos_squirrel_y < goal_yy){
 					pos_squirrel_y++;
-					//pos_squirrel_x=0; // uncomment in the version without PCC.
+					//pos_squirrel_x=0; // uncomment in the version without PCC, as well as the conditional statements before.
 					logger.info("new coordinates: [x="+pos_squirrel_x+",y="+pos_squirrel_y+"]");
 				}
+				// no goal anymore
+				else if (pos_squirrel_y == goal_y | pos_squirrel_y == goal_yy)  {
+					pos_squirrel_y++;
+				}
+		
 			}
 		 else if (action.getFunctor().equals("moveRIGHT")) {
 			//if (pos_squirrel_x < 3) {
@@ -134,7 +153,7 @@ public class Centrale extends Environment {
 			logger.info("The action "+action+" is not implemented!");
 			return false;
 		}
-	
+				
 		createPercept(); // update agents perception for the new world state
 		gui.paint();
 		return true;        
@@ -159,7 +178,7 @@ public class Centrale extends Environment {
             addPercept(lPos2);
         } else if (pos_squirrel_x == 0 && pos_squirrel_y == 2) {
             addPercept(lPos3);
-        } else if (pos_squirrel_x == 0 && pos_squirrel_y == 3) {
+        } else if (pos_squirrel_x == 0 &&  pos_squirrel_y == 3) {
             addPercept(lPos4);
         }
 		// Second line
@@ -199,11 +218,17 @@ public class Centrale extends Environment {
 			logger.info("there is material");
 		} else {
 			addPercept(lNotMaterial);
-			logger.info("there is not material");
+			logger.info("there is no material");
 		}
 		
-		// If we are in the position where we entered and we have taken all the materials state then we're allowed to go out!
-		if (pos_squirrel_x == 0 && pos_squirrel_y == 0 && nbMat == 2) {
+		isEmptyCentrale = areAllFalse(grid);	
+		if (isEmptyCentrale) {
+			addPercept(lEmptyMatrix);
+			logger.info("----------->We are in the case where centrale is empty!<-----------");
+		}
+	
+		// If we are in one of the goals position and we have taken all the materials state then we're allowed to go out!
+		if ( (pos_squirrel_x == goal_x && pos_squirrel_y == goal_y && nbMat == 2) | (pos_squirrel_x == goal_xx && pos_squirrel_y == goal_yy && nbMat == 2) ) {
 			addPercept(lAllDone);
 			logger.info("Work is done. I'm going out.");
 			logger.info("cpt="+nbMat);
