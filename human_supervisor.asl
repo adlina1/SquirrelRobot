@@ -4,9 +4,13 @@
 
 /* Initial goals */
 
-!start.
+!initialize.
+!give.
 
 /* Plans */
 
-+!start : true <- .print("hello world.").
+//tell = s intends r to believe (that s believes) the literal in the message’s content (noMaterial) to be true
++!initialize : true <- .send(squirrel_robot, tell, [posMat_1(15),posMat_2(7)]).
++!give : true <- .send(squirrel_robot, tell, positionsGiven(squirrel_robot)).
 
+// do something when we receive the materials?

@@ -1,6 +1,7 @@
 
-// Actions : moveUP, moveDOWN, moveLEFT, moveRIGHT, returnBegining, take, send, goOut, (check?)
-
+// Actions : moveUP, movingTowardsGoal2, moveLEFT, movingTowardsGoal2, returnBegining, take, send, goOut, (check?)
+// In the console, actions will be preceded by "->"A 
+// Where A is the name of the Action.
 
 /* Initial goal */
 
@@ -9,33 +10,46 @@
 
 /* Plans */
 
++posMat_1(X) <- puttingIntoMM(X).
++posMat_2(X) <- puttingIntoMM(X).
+
+/* When we start believing that there is no more material take the state of, and we believe we're at the position 1, the desire to
+go out is created. */
+
++positionsGiven(squirrel_robot) <- !saySmth("I was given the positions by supervisor.").
++!saySmth(X) : true <- print(X).
+
++posRobot(1) : matrixEmpty <- !goOut.
+
 +!giveStateMaterial : noMaterial <- !move; !giveStateMaterial.
 +!giveStateMaterial : material <- take; .send(human_supervisor, tell, noMaterial); !giveStateMaterial.
-//tell = s intends r to believe (that s believes) the literal in the message’s content (noMaterial) to be true
 
++!goOut : matrixEmpty <- leave; .stopMAS.   //.stopMAS  cause a halt to the execution of the multi-agent system
 
-// We can reach the exit by going to the square n°16 that takes us to the entry directly (n°0) or by going towards the entry walking.
-+!goOut : matrixEmpty <- returnBegining; leave.                 
+/*
+//  For example, the KQML performative tell is used with the intention of changing the receiver’s beliefs
+Knowledge Query and Manipulation Language (KQML), developed in the
+context of the ‘Knowledge Sharing Effort’ project [44], was the first attempt to
+define a practical agent communication language that included high-level (speech-
+act based) communication as considered in the distributed artificial intelligence
+literature. */
 
-+!move : posRobot(1) <- moveRIGHT; moveDOWN.
-+!move : posRobot(2) <- moveRIGHT.
-+!move : posRobot(3) <- moveRIGHT.
-+!move : posRobot(4) <- moveRIGHT.
-+!move : posRobot(5) <- moveRIGHT.
-+!move : posRobot(6) <- moveRIGHT.
-+!move : posRobot(7) <- moveRIGHT.
-+!move : posRobot(8) <- moveRIGHT.
-+!move : posRobot(9) <- moveRIGHT.
-+!move : posRobot(10) <- moveDOWN.
-+!move : posRobot(11) <- moveRIGHT.
-+!move : posRobot(12) <- moveRIGHT.
-+!move:  posRobot(13) <- moveDOWN.
-+!move : posRobot(14) <- moveDOWN.
-+!move : posRobot(15) <- moveDOWN.
-+!move : posRobot(16) <- !goOut. // end of the grid
-
-
-
++!move : posRobot(1) <- moving.
++!move : posRobot(2) <- moving.
++!move : posRobot(3) <- moving.
++!move : posRobot(4) <- moving.
++!move : posRobot(5) <- moving.
++!move : posRobot(6) <- moving.
++!move : posRobot(7) <- moving.
++!move : posRobot(8) <- moving.
++!move : posRobot(9) <- moving.
++!move : posRobot(10) <- moving.
++!move : posRobot(11) <- moving.
++!move : posRobot(12) <- moving.
++!move:  posRobot(13) <- moving.
++!move : posRobot(14) <- moving.
++!move : posRobot(15) <- moving.
++!move : posRobot(16) <- moving. // end of the grid
 
 
 

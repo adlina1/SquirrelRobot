@@ -24,6 +24,7 @@ public class Centrale extends Environment {
 	private int nbMat = 0;
 	private static int goal_x, goal_y, goal_xx, goal_yy;
 	boolean isEmptyCentrale = false;
+
 	
 	// The constant terms used for perception 
     private static final Literal lPos1  = ASSyntax.createLiteral("posRobot", ASSyntax.createNumber(1));
@@ -44,12 +45,14 @@ public class Centrale extends Environment {
 	private static final Literal lPos16 = ASSyntax.createLiteral("posRobot", ASSyntax.createNumber(16));
 
 	private static final Literal lMaterial = ASSyntax.createLiteral("material"); // it means we perceive there is a material 
-	private static final Literal lNotMaterial = ASSyntax.createLiteral("noMaterial"); // here we don't
+	private static final Literal lNotMaterial = ASSyntax.createLiteral("noMaterial"); 
 	private static final Literal lAllDone = ASSyntax.createLiteral("everythingControlled"); 
 	private static final Literal lEmptyMatrix = ASSyntax.createLiteral("matrixEmpty"); 
 	
 	// Constructor
 	public Centrale() {
+		
+		System.out.println("Initializing goals...");
 		
 		// coordinates of first material
 		goal_x = 2;
@@ -59,13 +62,12 @@ public class Centrale extends Environment {
 		goal_xx = 3;
 		goal_yy = 2;
 		
-	    grid[goal_x][goal_y] = true;
-		grid[goal_xx][goal_yy] = true;	
-        createPercept();
-		
 		/* We define in which position there will be a material (which our robot will have to take the state) in our world
 		we suppose we are given this data by the human supervisor */
-      	
+	    grid[goal_x][goal_y] = true;
+		grid[goal_xx][goal_yy] = true;
+		
+        createPercept();
     }
 	
 	public static boolean areAllFalse(boolean[][] array)
@@ -88,7 +90,7 @@ public class Centrale extends Environment {
 		
         try {
 			// 750ms between each action taken
-            Thread.sleep(750);   
+            Thread.sleep(700);   
         }  catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -105,51 +107,65 @@ public class Centrale extends Environment {
 				logger.info("Not a material there");
 				Toolkit.getDefaultToolkit().beep();
 			}
-		} else if (action.getFunctor().equals("moveUP")) {
-				//if (pos_squirrel_y > 0) {
-					if(pos_squirrel_y > goal_y | pos_squirrel_y > goal_yy){
-						pos_squirrel_y--;
-						logger.info("new coordinates: [x="+pos_squirrel_x+",y="+pos_squirrel_y+"]");
+		} else if (action.getFunctor().equals("print")) {
+			//System.out.println("SquirrelRobot saying: " +action.getTerm(0)); // print the 0th argument of print function
+			
+		} else if (action.getFunctor().equals("puttingIntoMM")) {
+			//System.out.println("TEST:" +action.getTerm(0));
+			/*pos_goal_one = ASSyntax.termToObject(action.getTerm(0));
+			po*s_goal_two = ASSyntax.termToObject(action.getTerm(0));*/
+			// lpos = 1 + (4 * pos_squirrel_x ) + pos_squirrel_y .
+		}
+		else if (action.getFunctor().equals("moving")) {
+			
+			// At the first material's state recovered, we check which one it is and we define our new goal position
+			if (nbMat == 1 && grid[goal_x][goal_y] == false){
+				goal_x = goal_xx;
+				goal_y = goal_yy;
+			} else if (nbMat == 1 && grid[goal_xx][goal_yy] == false){
+				goal_xx = goal_x;
+				goal_yy = goal_y;
+			// All materials recovered, return where you entered, and go out
+			} else if (nbMat == 2){
+				goal_x = 0;
+				goal_y = 0;
 			}
-		} else if (action.getFunctor().equals("moveDOWN")) {
-			//if (pos_squirrel_y < 3) {
-				if(pos_squirrel_y < goal_y | pos_squirrel_y < goal_yy){
-					pos_squirrel_y++;
-					//pos_squirrel_x=0; // uncomment in the version without PCC, as well as the conditional statements before.
-					logger.info("new coordinates: [x="+pos_squirrel_x+",y="+pos_squirrel_y+"]");
-				}
-				// no goal anymore
-				else if (pos_squirrel_y == goal_y | pos_squirrel_y == goal_yy)  {
-					pos_squirrel_y++;
-				}
+			
+			if (pos_squirrel_x < goal_x) {
+				pos_squirrel_x++;
+				logger.info("new coordinates: [x="+pos_squirrel_x+",y="+pos_squirrel_y+"]");
+			}
+			
+			else if(pos_squirrel_y < goal_y) {
+				pos_squirrel_y++;
+				logger.info("new coordinates: [x="+pos_squirrel_x+",y="+pos_squirrel_y+"]");
+			}
 		
+			else if(pos_squirrel_x > goal_x){
+				pos_squirrel_x--;
+				logger.info("new coordinates: [x="+pos_squirrel_x+",y="+pos_squirrel_y+"]");
 			}
-		 else if (action.getFunctor().equals("moveRIGHT")) {
-			//if (pos_squirrel_x < 3) {
-				if (pos_squirrel_x < goal_x | pos_squirrel_x < goal_xx){
-					pos_squirrel_x++;	
-					logger.info("new coordinates: [x="+pos_squirrel_x+",y="+pos_squirrel_y+"]");
-				}
-			}
-		else if (action.getFunctor().equals("moveLEFT")) {
-			//if (pos_squirrel_x > 0) {
-				if(pos_squirrel_x > goal_x | pos_squirrel_x > goal_xx){
-					pos_squirrel_x--;
-					logger.info("new coordinates: [x="+pos_squirrel_x+",y="+pos_squirrel_y+"]");
-				}
+			
+			else if(pos_squirrel_y > goal_y){
+				pos_squirrel_y--;
+				logger.info("new coordinates: [x="+pos_squirrel_x+",y="+pos_squirrel_y+"]");
 			}	
-		// I come back to the begining of the grid (at case n°13)
+			
+		}
+			
+		// I come back to the begining of the grid 
 		 else if (action.getFunctor().equals("returnBegining")){
-			if (pos_squirrel_x == 3 && pos_squirrel_y == 3) {
-				pos_squirrel_x = 0;
-				pos_squirrel_y = 0;
-			}
+			//if (pos_squirrel_x == 3 && pos_squirrel_y == 3) {
+			// If we are in one of the goals position and we have taken all the materials state then we're allowed to go out!	
+			if ( (pos_squirrel_x == goal_x && pos_squirrel_y == goal_y && nbMat == 2) | (pos_squirrel_x == goal_xx && pos_squirrel_y == goal_yy && nbMat == 2) ) {
+			pos_squirrel_x = 0;
+			pos_squirrel_y = 0;
+		}
 		} 
 		else if (action.getFunctor().equals("leave")){
-			logger.info("Leaave");
-			stop(); // to be changed, atm only forces the execution of the program to be stopped
-		
-		} else {
+			logger.info("Leaving... Bye!");		
+		} 
+		else {
 			logger.info("The action "+action+" is not implemented!");
 			return false;
 		}
@@ -212,8 +228,8 @@ public class Centrale extends Environment {
             addPercept(lPos16);
         }
 		
+		// if there is a material (position of the grid equal to true)
 		if (grid[pos_squirrel_x][pos_squirrel_y]) {
-			// there is a material
 			addPercept(lMaterial);
 			logger.info("there is material");
 		} else {
@@ -224,20 +240,20 @@ public class Centrale extends Environment {
 		isEmptyCentrale = areAllFalse(grid);	
 		if (isEmptyCentrale) {
 			addPercept(lEmptyMatrix);
-			logger.info("----------->We are in the case where centrale is empty!<-----------");
+			logger.info("----------->  !! Centrale is empty !! Every material state has been taken. <-----------");
 		}
 	
-		// If we are in one of the goals position and we have taken all the materials state then we're allowed to go out!
-		if ( (pos_squirrel_x == goal_x && pos_squirrel_y == goal_y && nbMat == 2) | (pos_squirrel_x == goal_xx && pos_squirrel_y == goal_yy && nbMat == 2) ) {
+		/*if ( (pos_squirrel_x == goal_x && pos_squirrel_y == goal_y && nbMat == 2) | (pos_squirrel_x == goal_xx && pos_squirrel_y == goal_yy && nbMat == 2) ) {
 			addPercept(lAllDone);
 			logger.info("Work is done. I'm going out.");
-			logger.info("cpt="+nbMat);
-		}
+			//logger.info("cpt="+nbMat);
+		}*/
 						
 	} // end createPercept
 	
 	
 	public class CentraleGUI extends JFrame {
+		
         JLabel[][] labels;
 
 		// Constructor
