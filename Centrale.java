@@ -92,7 +92,7 @@ public class Centrale extends Environment {
 			// 750ms between each action taken
             Thread.sleep(700);   
         }  catch (Exception e) {
-			e.printStackTrace();
+			//e.printStackTrace();
 		}
 		
 		
@@ -114,7 +114,7 @@ public class Centrale extends Environment {
 			//System.out.println("TEST:" +action.getTerm(0));
 			/*pos_goal_one = ASSyntax.termToObject(action.getTerm(0));
 			po*s_goal_two = ASSyntax.termToObject(action.getTerm(0));*/
-			// lpos = 1 + (4 * pos_squirrel_x ) + pos_squirrel_y .
+			// lpos = 1 + (4 * pos_squirrel_x ) + pos_squirrel_y // as we might optmize later on
 		}
 		else if (action.getFunctor().equals("moving")) {
 			
@@ -163,7 +163,7 @@ public class Centrale extends Environment {
 		}
 		} 
 		else if (action.getFunctor().equals("leave")){
-			logger.info("Leaving... Bye!");		
+			logger.info("Nobody in the Nuclear Power Plant anymore.");		
 		} 
 		else {
 			logger.info("The action "+action+" is not implemented!");
@@ -231,11 +231,13 @@ public class Centrale extends Environment {
 		// if there is a material (position of the grid equal to true)
 		if (grid[pos_squirrel_x][pos_squirrel_y]) {
 			addPercept(lMaterial);
-			logger.info("there is material");
+			logger.info("there is a material");
 		} else {
 			addPercept(lNotMaterial);
 			logger.info("there is no material");
 		}
+		
+		
 		
 		isEmptyCentrale = areAllFalse(grid);	
 		if (isEmptyCentrale) {
@@ -280,7 +282,7 @@ public class Centrale extends Environment {
 	void paint() {
                 for (int i = 0; i < labels.length; i++) {
                     for (int j = 0; j < labels.length; j++) {
-                        String square = "<html><center>";
+                        String square = "<html><center>";						
                         if (pos_squirrel_x == i && pos_squirrel_y == j) {
                             square += "<font color=\"purple\" size=7><b>SquiBot</b> <br></font>";
                         }
